@@ -46,4 +46,16 @@ public class ProductController {
         .map(productModel -> new ResponseEntity<>(productModel, HttpStatus.OK))
         .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
+
+  @PostMapping("/products")
+  public ResponseEntity<ProductModel> createProduct(@RequestBody ProductModel productModel) {
+    try {
+      // TODO: userId has to be authenticated!
+      ProductModel _productModel = productRepository.save(new ProductModel(productModel.getName(), productModel.getDescription(), productModel.getPrice(), productModel.getUserId()));
+
+      return new ResponseEntity<>(_productModel, HttpStatus.OK);
+    } catch (Exception e) {
+      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

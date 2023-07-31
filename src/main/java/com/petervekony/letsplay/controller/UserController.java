@@ -47,4 +47,21 @@ public class UserController {
         .map(userModel -> new ResponseEntity<>(userModel, HttpStatus.OK))
         .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
+
+  @PostMapping("/users")
+  public ResponseEntity<UserModel> createUser(@RequestBody UserModel userModel) {
+    try {
+      // TODO: This needs to be hashed!
+      String password = userModel.getPassword();
+
+      UserModel _userModel = userRepository.save(new UserModel(userModel.getName(), userModel.getEmail(), password));
+
+      // setting user password to null before sending the response
+      _userModel.setPassword(null);
+
+      return new ResponseEntity<>(_userModel, HttpStatus.OK);
+    } catch (Exception e) {
+      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
