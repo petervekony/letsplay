@@ -1,7 +1,10 @@
 package com.petervekony.letsplay.model;
 
+import com.petervekony.letsplay.security.UserLevel;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+@Document(collection = "users")
 public class UserModel {
   @Id
   private String id;
@@ -10,11 +13,13 @@ public class UserModel {
   private String password;
   private String role;
 
+  private UserModel() {}
+
   public UserModel(String name, String email, String password) {
     this.name = name;
     this.email = email;
     this.password = password;
-    this.role = "user";
+    this.role = UserLevel.user.toString();
   }
 
   public String getId() {
@@ -39,5 +44,13 @@ public class UserModel {
 
   public void setPassword(String password) {
     this.password = password;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
   }
 }

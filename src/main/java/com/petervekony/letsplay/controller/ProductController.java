@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-// @CrossOrigin(origins = "http://localhost:8081")
+@CrossOrigin
 @RestController
 @RequestMapping("/api")
 public class ProductController {
@@ -56,6 +56,31 @@ public class ProductController {
       return new ResponseEntity<>(_productModel, HttpStatus.OK);
     } catch (Exception e) {
       return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @PutMapping("/products/{id}")
+  public ResponseEntity<ProductModel> updateProduct(@PathVariable("id") String id, @RequestBody ProductModel productModel) {
+    Optional<ProductModel> productData = productRepository.findById(id);
+
+    if (productData.isPresent()) {
+      ProductModel _product = productData.get();
+      _product.setName(productModel.getName());
+      _product.setDescription(productModel.getDescription());
+      _product.setPrice(productModel.getPrice());
+      return new ResponseEntity<>(productRepository.save(_product), HttpStatus.OK);
+    } else {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @DeleteMapping("products/{id}")
+  public ResponseEntity<HttpStatus> deleteProduct(@PathVariable String id) {
+    try {
+      productRepository.deleteById(id);
+      return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    } catch (Exception e) {
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

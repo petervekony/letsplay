@@ -13,6 +13,8 @@ public class ProductModel {
   private Double price;
   private String userId;
 
+  private ProductModel() {}
+
   public ProductModel(String name, String description, Double price, String userId) {
     this.name = name;
     this.description = description;

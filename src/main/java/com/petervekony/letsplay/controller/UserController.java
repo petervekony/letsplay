@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-// @CrossOrigin(origins = "http://localhost:8081")
+@CrossOrigin
 @RestController
 @RequestMapping("/api")
 public class UserController {
@@ -62,6 +62,30 @@ public class UserController {
       return new ResponseEntity<>(_userModel, HttpStatus.OK);
     } catch (Exception e) {
       return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @PutMapping("/users/{id}")
+  public ResponseEntity<UserModel> updateUser(@PathVariable("id") String id, @RequestBody UserModel userModel) {
+    Optional<UserModel> userData = userRepository.findById(id);
+
+    if (userData.isPresent()) {
+      UserModel _user = userData.get();
+      _user.setName(userModel.getName());
+      _user.setEmail(userModel.getEmail());
+      return new ResponseEntity<>(userRepository.save(_user), HttpStatus.OK);
+    } else {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+  }
+
+  @DeleteMapping("/users/{id}")
+  public ResponseEntity<HttpStatus> deleteUser(@PathVariable String id) {
+    try {
+      userRepository.deleteById(id);
+      return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    } catch (Exception e) {
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface ProductRepository extends MongoRepository<ProductModel, String> {
   List<ProductModel> findByName(String name);
-  List<ProductModel> findByOwner(String userId);
+  // List<ProductModel> findByOwner(String userId);
 }
