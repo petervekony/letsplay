@@ -5,6 +5,7 @@ import com.petervekony.letsplay.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -18,6 +19,9 @@ public class UserController {
 
   @Autowired
   UserRepository userRepository;
+
+  @Autowired
+  private BCryptPasswordEncoder passwordEncoder;
 
   @GetMapping("/users")
   public ResponseEntity<List<UserModel>> getAllUsers(@RequestParam(required = false) String name) {
@@ -51,10 +55,11 @@ public class UserController {
   @PostMapping("/users")
   public ResponseEntity<UserModel> createUser(@RequestBody UserModel userModel) {
     try {
-      // TODO: This needs to be hashed!
-      String password = userModel.getPassword();
+      // hashing the user password before saving
+      String rawPassword = userModel.getPassword();
+      String encodedPassword = passwordEncoder.encode(rawPassword);
 
-      UserModel _userModel = userRepository.save(new UserModel(userModel.getName(), userModel.getEmail(), password));
+      UserModel _userModel = userRepository.save(new UserModel(userModel.getName(), userModel.getEmail(), encodedPassword));
 
       // setting user password to null before sending the response
       _userModel.setPassword(null);

@@ -1,25 +1,31 @@
 package com.petervekony.letsplay.model;
 
-import com.petervekony.letsplay.security.UserLevel;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Document(collection = "users")
 public class UserModel {
   @Id
   private String id;
+
   private String name;
+
   private String email;
   private String password;
-  private String role;
 
-  private UserModel() {}
+  @DBRef
+  private Set<Role> roles = new HashSet<>();
+
+  public UserModel() {}
 
   public UserModel(String name, String email, String password) {
     this.name = name;
     this.email = email;
     this.password = password;
-    this.role = UserLevel.user.toString();
   }
 
   public String getId() {
@@ -34,8 +40,12 @@ public class UserModel {
     return email;
   }
 
-  public String getRole() {
-    return role;
+  public Set<Role> getRoles() {
+    return roles;
+  }
+
+  public void setRoles(Set<Role> roles) {
+    this.roles = roles;
   }
 
   public String getPassword() {
