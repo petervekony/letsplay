@@ -1,5 +1,7 @@
 package com.petervekony.letsplay.controller;
 
+import com.petervekony.letsplay.model.ERole;
+import com.petervekony.letsplay.model.Role;
 import com.petervekony.letsplay.model.UserModel;
 import com.petervekony.letsplay.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,9 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @CrossOrigin
 @RestController
