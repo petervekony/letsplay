@@ -4,6 +4,7 @@ import com.petervekony.letsplay.model.ERole;
 import com.petervekony.letsplay.model.Role;
 import com.petervekony.letsplay.model.UserModel;
 import com.petervekony.letsplay.repository.UserRepository;
+import com.petervekony.letsplay.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,20 +19,12 @@ import java.util.*;
 public class UserController {
 
   @Autowired
-  UserRepository userRepository;
-
-  @Autowired
-  private BCryptPasswordEncoder passwordEncoder;
+  UserService userService;
 
   @GetMapping("/users")
   public ResponseEntity<List<UserModel>> getAllUsers(@RequestParam(required = false) String name) {
     try {
-      List<UserModel> users = new ArrayList<>();
-      if (name == null) {
-        userRepository.findAll().forEach(users::add);
-      } else {
-        userRepository.findByName(name).forEach(users::add);
-      }
+      List<UserModel> users = userService.getAllUsers(name);
 
       if (users.isEmpty()) {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -39,13 +32,13 @@ public class UserController {
 
       return new ResponseEntity<>(users, HttpStatus.OK);
     } catch (Exception e) {
-      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+      return new ResponseEntity<>(null, HttpStatus.I_AM_A_TEAPOT);
     }
   }
 
   @GetMapping("/users/{id}")
   public ResponseEntity<UserModel> getUserById(@PathVariable("id") String id) {
-    Optional<UserModel> userData = userRepository.findById(id);
+    Optional<UserModel> userData = userService.getUserById(id);
 
     return userData
         .map(userModel -> new ResponseEntity<>(userModel, HttpStatus.OK))
@@ -55,42 +48,32 @@ public class UserController {
   @PostMapping("/users")
   public ResponseEntity<UserModel> createUser(@RequestBody UserModel userModel) {
     try {
-      // hashing the user password before saving
-      String rawPassword = userModel.getPassword();
-      String encodedPassword = passwordEncoder.encode(rawPassword);
-
-      UserModel _userModel = userRepository.save(new UserModel(userModel.getName(), userModel.getEmail(), encodedPassword));
+      UserModel _userModel = userService.createUser(userModel);
 
       // setting user password to null before sending the response
       _userModel.setPassword(null);
 
       return new ResponseEntity<>(_userModel, HttpStatus.OK);
     } catch (Exception e) {
-      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+      return new ResponseEntity<>(null, HttpStatus.I_AM_A_TEAPOT);
     }
   }
 
   @PutMapping("/users/{id}")
   public ResponseEntity<UserModel> updateUser(@PathVariable("id") String id, @RequestBody UserModel userModel) {
-    Optional<UserModel> userData = userRepository.findById(id);
-
-    if (userData.isPresent()) {
-      UserModel _user = userData.get();
-      _user.setName(userModel.getName());
-      _user.setEmail(userModel.getEmail());
-      return new ResponseEntity<>(userRepository.save(_user), HttpStatus.OK);
-    } else {
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
+    Optional<UserModel> updatedUser = userService.updateUser(id, userModel);
+    return updatedUser
+            .map(user -> new ResponseEntity<>(user, HttpStatus.OK))
+            .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
 
   @DeleteMapping("/users/{id}")
   public ResponseEntity<HttpStatus> deleteUser(@PathVariable String id) {
     try {
-      userRepository.deleteById(id);
+      userService.deleteUser(id);
       return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     } catch (Exception e) {
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+      return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT);
     }
   }
 }
