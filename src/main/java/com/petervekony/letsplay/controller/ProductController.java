@@ -2,10 +2,13 @@ package com.petervekony.letsplay.controller;
 
 import com.petervekony.letsplay.model.ProductModel;
 import com.petervekony.letsplay.repository.ProductRepository;
+import com.petervekony.letsplay.security.services.UserDetailsImpl;
 import com.petervekony.letsplay.service.ProductService;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -46,6 +49,10 @@ public class ProductController {
   @PostMapping("/products")
   public ResponseEntity<ProductModel> createProduct(@RequestBody ProductModel productModel) {
     try {
+      UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+      productModel.setUserId(userDetails.getId());
+
       ProductModel _productModel = productService.createProduct(productModel);
 
       return new ResponseEntity<>(_productModel, HttpStatus.OK);

@@ -39,3 +39,6 @@ The response body should look similar to this:
 }
 ```
 It also contains a cookie named "letsplay" for the authentication.
+
+## Create product request
+
