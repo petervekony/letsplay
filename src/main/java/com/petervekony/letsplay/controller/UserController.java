@@ -1,5 +1,6 @@
 package com.petervekony.letsplay.controller;
 
+import com.petervekony.letsplay.security.services.PrincipalData;
 import com.petervekony.letsplay.model.UserModel;
 import com.petervekony.letsplay.security.services.UserDetailsImpl;
 import com.petervekony.letsplay.service.UserService;
@@ -45,6 +46,7 @@ public class UserController {
 
   @PostMapping("/users")
   public ResponseEntity<UserModel> createUser(@RequestBody UserModel userModel) {
+    // TODO: ADMIN CHECK!
     try {
       UserModel _userModel = userService.createUser(userModel);
 
@@ -68,11 +70,9 @@ public class UserController {
   @DeleteMapping("/users/{id}")
   public ResponseEntity<HttpStatus> deleteUser(@PathVariable String id) {
     try {
-      UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      PrincipalData principalData = new PrincipalData();
 
-      boolean isAdmin = userDetails.getAuthorities().stream().anyMatch(role -> role.getAuthority().equals("ROLE_admin"));
-
-      if (!isAdmin && !userDetails.getId().equals(id)) {
+      if (!principalData.authCheck(id)) {
         return new ResponseEntity<>(HttpStatus.FORBIDDEN);
       }
 
@@ -82,4 +82,6 @@ public class UserController {
       return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT);
     }
   }
+
+
 }

@@ -8,18 +8,13 @@ Using Postman (or a similar API tool) you have to send a POST request to the */a
 {
   "username": "foo",
   "email": "foo@bar.com",
-  "roles": [
-    "list",
-    "of",
-    "roles"
-  ],
   "password": "desiredPassword"
 }
 ```
 
-Currently "admin" and "user" roles are implemented. Users can only update and delete their own user profile, and only add, delete and update products belonging to their own user id.
+## Signin request
 
-## Signing request
+POST request to the */api/auth/signin* endpoint with a request body following this structure:
 
 ```json
 {
@@ -38,7 +33,39 @@ The response body should look similar to this:
     ]
 }
 ```
-It also contains a cookie named "letsplay" for the authentication.
+It also contains a cookie named "letsplay" for the authentication. Postman saves this cookie by default and uses it in any future requests, with other tools you might have to manually add the cookie.
+
+## User endpoints
+
+### Get All Users
+
+A GET request with an empty body sent to the */api/users* endpoint will retrieve all users.
+
+### Get User By ID
+
+A GET request with an empty body sent to the */api/users/**{id}*** endpoint will retrieve a user specified at **{id}**.
+
+### Create User
+
+??? TODO ???
+
+### Update User
+### Delete User
+
+## Product endpoints
+
 
 ## Create product request
+
+POST request to the */api/products* endpoint with the following structure:
+
+```json
+{
+  "name": "test1",
+  "description": "test1 description",
+  "price": 100.00
+}
+```
+
+A user can NOT create a product for another user.
 

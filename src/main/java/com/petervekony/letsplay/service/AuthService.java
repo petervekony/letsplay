@@ -85,29 +85,10 @@ public class AuthService {
                         signupRequest.getEmail(),
                         encoder.encode(signupRequest.getPassword()));
 
-        Set<String> strRoles = signupRequest.getRoles();
+        Role userRole = roleRepository.findByName(ERole.user)
+                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
         Set<Role> roles = new HashSet<>();
-
-        if (strRoles == null) {
-            Role userRole = roleRepository.findByName(ERole.user)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-            roles.add(userRole);
-        } else {
-            strRoles.forEach(role -> {
-                switch (role) {
-                    case "admin":
-                        Role adminRole = roleRepository.findByName(ERole.admin)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(adminRole);
-
-                        break;
-                    default:
-                        Role userRole = roleRepository.findByName(ERole.user)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(userRole);
-                }
-            });
-        }
+        roles.add(userRole);
 
         user.setRoles(roles);
         userRepository.save(user);

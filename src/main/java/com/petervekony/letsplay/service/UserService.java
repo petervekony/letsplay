@@ -3,6 +3,7 @@ package com.petervekony.letsplay.service;
 import com.petervekony.letsplay.model.ERole;
 import com.petervekony.letsplay.model.Role;
 import com.petervekony.letsplay.model.UserModel;
+import com.petervekony.letsplay.repository.ProductRepository;
 import com.petervekony.letsplay.repository.RoleRepository;
 import com.petervekony.letsplay.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
@@ -21,6 +22,9 @@ public class UserService {
 
     @Autowired
     public RoleRepository roleRepository;
+
+    @Autowired
+    public ProductRepository productRepository;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -69,6 +73,7 @@ public class UserService {
     }
 
     public void deleteUser(String id) {
+        productRepository.deleteAllByUserId(id);
         userRepository.deleteById(id);
     }
 
