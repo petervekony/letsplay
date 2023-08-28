@@ -1,14 +1,12 @@
 package com.petervekony.letsplay.controller;
 
-import com.petervekony.letsplay.model.ERole;
-import com.petervekony.letsplay.model.Role;
 import com.petervekony.letsplay.model.UserModel;
-import com.petervekony.letsplay.repository.UserRepository;
+import com.petervekony.letsplay.security.services.UserDetailsImpl;
 import com.petervekony.letsplay.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -70,6 +68,14 @@ public class UserController {
   @DeleteMapping("/users/{id}")
   public ResponseEntity<HttpStatus> deleteUser(@PathVariable String id) {
     try {
+      UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+      boolean isAdmin = userDetails.getAuthorities().stream().anyMatch(role -> role.getAuthority().equals("ROLE_admin"));
+
+      if (!isAdmin && !userDetails.getId().equals(id)) {
+        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+      }
+
       userService.deleteUser(id);
       return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     } catch (Exception e) {
