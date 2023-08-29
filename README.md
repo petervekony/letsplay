@@ -25,12 +25,10 @@ POST request to the */api/auth/signin* endpoint with a request body following th
 The response body should look similar to this:
 ```json
 {
-    "id": "64ecf805e4293c695a01c2c3",
-    "username": "foo",
-    "email": "foo@bar.com",
-    "roles": [
-        "user"
-    ]
+  "id": "64edcec97eb59324dc919bbb",
+  "username": "foo",
+  "email": "foo@bar.com",
+  "role": "user"
 }
 ```
 It also contains a cookie named "letsplay" for the authentication. Postman saves this cookie by default and uses it in any future requests, with other tools you might have to manually add the cookie.

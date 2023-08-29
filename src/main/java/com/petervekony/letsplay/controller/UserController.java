@@ -44,7 +44,7 @@ public class UserController {
 
   @PostMapping("/users")
   public ResponseEntity<UserModel> createUser(@RequestBody UserModel userModel) {
-    // TODO: ADMIN CHECK!
+    // TODO: ADMIN CHECK! OR POSSIBLY DELETE, SEE /api/auth/signup
     try {
       UserModel _userModel = userService.createUser(userModel);
 

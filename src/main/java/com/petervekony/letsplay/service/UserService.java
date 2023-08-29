@@ -1,13 +1,9 @@
 package com.petervekony.letsplay.service;
 
-import com.petervekony.letsplay.model.ERole;
-import com.petervekony.letsplay.model.Role;
 import com.petervekony.letsplay.model.UserModel;
 import com.petervekony.letsplay.repository.ProductRepository;
-import com.petervekony.letsplay.repository.RoleRepository;
 import com.petervekony.letsplay.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,9 +15,6 @@ import java.util.*;
 public class UserService {
     @Autowired
     public UserRepository userRepository;
-
-    @Autowired
-    public RoleRepository roleRepository;
 
     @Autowired
     public ProductRepository productRepository;
@@ -57,7 +50,10 @@ public class UserService {
         String rawPassword = userModel.getPassword();
         String encodedPassword = passwordEncoder.encode(rawPassword);
 
-        return userRepository.save(new UserModel(userModel.getName(), userModel.getEmail(), encodedPassword));
+        userModel.setPassword(encodedPassword);
+        userModel.setRole("user");
+
+        return userRepository.save(userModel);
     }
 
     public Optional<UserModel> updateUser(String id, UserModel userModel) {
@@ -66,6 +62,7 @@ public class UserService {
             UserModel _user = userData.get();
             _user.setName(userModel.getName());
             _user.setEmail(userModel.getEmail());
+            _user.setPassword(passwordEncoder.encode(userModel.getPassword()));
             return Optional.of(userRepository.save(_user));
         } else {
             return Optional.empty();
@@ -77,32 +74,6 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    public void setRoles(UserModel user, Set<String> strRoles) {
-        Set<Role> roles = new HashSet<>();
-
-        if (strRoles == null || strRoles.isEmpty()) {
-            Role userRole = roleRepository.findByName(ERole.user)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-            roles.add(userRole);
-        } else {
-            strRoles.forEach(role -> {
-                switch (role) {
-                    case "admin":
-                        Role adminRole = roleRepository.findByName(ERole.admin)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(adminRole);
-                        break;
-                    default:
-                        Role userRole = roleRepository.findByName(ERole.user)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(userRole);
-                }
-            });
-        }
-
-        user.setRoles(roles);
-        userRepository.save(user);
-    }
 
     @PostConstruct
     public void initDefaultAdmin() {
@@ -116,11 +87,7 @@ public class UserService {
         adminUser.setName(adminUsername);
         adminUser.setEmail(adminEmail);
         adminUser.setPassword(passwordEncoder.encode(adminPassword));
-
-        Set<String> adminRoles = new HashSet<>();
-        adminRoles.add("admin");
-        adminRoles.add("user");
-        setRoles(adminUser, adminRoles);
+        adminUser.setRole("admin");
 
         userRepository.save(adminUser);
     }

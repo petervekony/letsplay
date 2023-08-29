@@ -1,17 +1,15 @@
 package com.petervekony.letsplay.service;
 
-import com.petervekony.letsplay.model.ERole;
-import com.petervekony.letsplay.model.Role;
 import com.petervekony.letsplay.model.UserModel;
 import com.petervekony.letsplay.payload.request.LoginRequest;
 import com.petervekony.letsplay.payload.request.SignupRequest;
 import com.petervekony.letsplay.payload.response.MessageResponse;
 import com.petervekony.letsplay.payload.response.UserInfoResponse;
-import com.petervekony.letsplay.repository.RoleRepository;
 import com.petervekony.letsplay.repository.UserRepository;
 import com.petervekony.letsplay.security.jwt.JwtUtils;
 import com.petervekony.letsplay.security.services.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -22,21 +20,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 @Service
 public class AuthService {
+    @Autowired
+    private Environment env;
+
     @Autowired
     AuthenticationManager authenticationManager;
 
     @Autowired
     UserRepository userRepository;
-
-    @Autowired
-    RoleRepository roleRepository;
 
     @Autowired
     PasswordEncoder encoder;
@@ -54,15 +47,16 @@ public class AuthService {
 
         ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
 
-        List<String> roles = userDetails.getAuthorities().stream()
+        String role = userDetails.getAuthorities().stream()
+                .findFirst()
                 .map(item -> item.getAuthority())
-                .collect(Collectors.toList());
+                .orElse("user");
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
                 .body(new UserInfoResponse(userDetails.getId(),
                         userDetails.getUsername(),
                         userDetails.getEmail(),
-                        roles));
+                        role));
     }
 
     public ResponseEntity<?> registerUser(SignupRequest signupRequest) {
@@ -84,15 +78,24 @@ public class AuthService {
                         signupRequest.getUsername(),
                         signupRequest.getEmail(),
                         encoder.encode(signupRequest.getPassword()));
-
-        Role userRole = roleRepository.findByName(ERole.user)
-                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-        Set<Role> roles = new HashSet<>();
-        roles.add(userRole);
-
-        user.setRoles(roles);
+        user.setRole("user");
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+    }
+
+    public ResponseEntity<?> signOut() {
+        String jwtCookieName = env.getProperty("letsplay.app.jwtCookieName", "letsplay");
+        boolean secureCookie = Boolean.parseBoolean(env.getProperty("letsplay.app.jwtCookieSecurity"));
+
+        ResponseCookie cookie = ResponseCookie.from(jwtCookieName, "")
+                .httpOnly(true)
+                .secure(secureCookie)
+                .sameSite("Strict")
+                .path("/api")
+                .maxAge(0)
+                .build();
+
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body("User signed out successfully");
     }
 }

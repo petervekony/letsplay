@@ -17,8 +17,15 @@ public class UserModel {
   private String email;
   private String password;
 
-  @DBRef
-  private Set<Role> roles = new HashSet<>();
+  private String role;
+
+  public String getRole() {
+    return role;
+  }
+
+  public void setRole(String role) {
+    this.role = role;
+  }
 
   public UserModel() {}
 
@@ -38,14 +45,6 @@ public class UserModel {
 
   public String getEmail() {
     return email;
-  }
-
-  public Set<Role> getRoles() {
-    return roles;
-  }
-
-  public void setRoles(Set<Role> roles) {
-    this.roles = roles;
   }
 
   public String getPassword() {

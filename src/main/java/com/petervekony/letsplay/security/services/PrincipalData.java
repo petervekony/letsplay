@@ -1,8 +1,7 @@
 package com.petervekony.letsplay.security.services;
 
-import com.petervekony.letsplay.security.services.UserDetailsImpl;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class PrincipalData {
@@ -11,7 +10,9 @@ public class PrincipalData {
 
     public PrincipalData() {
         this.userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        this.isAdmin = userDetails.getAuthorities().stream().anyMatch(role -> role.getAuthority().equals("ROLE_admin"));
+        this.isAdmin = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> "admin".equals(role));
     }
 
     public boolean isAdmin() {
