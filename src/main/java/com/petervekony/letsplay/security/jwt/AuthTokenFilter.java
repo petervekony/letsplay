@@ -42,10 +42,15 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write(e.getMessage());
             logger.error("Cannot set user authentication: {}", e);
+            return;
         }
 
-        filterChain.doFilter(request, response);
+        if (!response.isCommitted()) {
+            filterChain.doFilter(request, response);
+        }
     }
 
     private String parseJwt(HttpServletRequest request) {
