@@ -9,7 +9,7 @@ import com.petervekony.letsplay.repository.UserRepository;
 import com.petervekony.letsplay.security.jwt.JwtUtils;
 import com.petervekony.letsplay.security.services.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +22,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
-    @Autowired
-    private Environment env;
 
     @Autowired
     AuthenticationManager authenticationManager;
@@ -36,6 +34,12 @@ public class AuthService {
 
     @Autowired
     JwtUtils jwtUtils;
+
+    @Value("${letsplay.app.jwtCookieName}")
+    String jwtCookieName;
+
+    @Value("${letsplay.app.jwtCookieSecurity}")
+    boolean jwtCookieSecurity;
 
     public ResponseEntity<?> authenticateUser(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -85,12 +89,9 @@ public class AuthService {
     }
 
     public ResponseEntity<?> signOut() {
-        String jwtCookieName = env.getProperty("letsplay.app.jwtCookieName", "letsplay");
-        boolean secureCookie = Boolean.parseBoolean(env.getProperty("letsplay.app.jwtCookieSecurity"));
-
         ResponseCookie cookie = ResponseCookie.from(jwtCookieName, "")
                 .httpOnly(true)
-                .secure(secureCookie)
+                .secure(jwtCookieSecurity)
                 .path("/api")
                 .maxAge(0)
                 .build();
