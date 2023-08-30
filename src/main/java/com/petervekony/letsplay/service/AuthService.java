@@ -91,7 +91,6 @@ public class AuthService {
         ResponseCookie cookie = ResponseCookie.from(jwtCookieName, "")
                 .httpOnly(true)
                 .secure(secureCookie)
-                .sameSite("Strict")
                 .path("/api")
                 .maxAge(0)
                 .build();

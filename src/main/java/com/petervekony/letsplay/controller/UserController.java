@@ -59,7 +59,21 @@ public class UserController {
 
   @PutMapping("/users/{id}")
   public ResponseEntity<UserModel> updateUser(@PathVariable("id") String id, @RequestBody UserModel userModel) {
-    Optional<UserModel> updatedUser = userService.updateUser(id, userModel);
+    PrincipalData principalData = new PrincipalData();
+    boolean isSelf = principalData.isSelf(id);
+
+    if (!principalData.authCheck(id)) {
+      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+    }
+
+    if (principalData.isAdmin() && !userModel.getRole().isEmpty()) {
+      Optional<UserModel> promotedUser = userService.updateUserRole(id, userModel.getRole());
+      if (promotedUser.isEmpty()) {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+      }
+    }
+
+    Optional<UserModel> updatedUser = userService.updateUser(id, userModel, isSelf);
     return updatedUser
             .map(user -> new ResponseEntity<>(user, HttpStatus.OK))
             .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));

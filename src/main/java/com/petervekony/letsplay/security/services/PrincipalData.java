@@ -12,11 +12,15 @@ public class PrincipalData {
         this.userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         this.isAdmin = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .anyMatch(role -> "admin".equals(role));
+                .anyMatch("admin"::equals);
     }
 
     public boolean isAdmin() {
         return this.isAdmin;
+    }
+
+    public boolean isSelf(String id) {
+        return this.userDetails.getId().equals(id);
     }
 
     public UserDetailsImpl getUserDetails() {
@@ -24,6 +28,6 @@ public class PrincipalData {
     }
 
     public boolean authCheck(String id) {
-        return this.isAdmin || this.userDetails.getId().equals(id);
+        return this.isAdmin || this.isSelf(id);
     }
 }

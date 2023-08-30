@@ -1,17 +1,14 @@
 package com.petervekony.letsplay.controller;
 
 import com.petervekony.letsplay.model.ProductModel;
-import com.petervekony.letsplay.repository.ProductRepository;
+import com.petervekony.letsplay.security.services.PrincipalData;
 import com.petervekony.letsplay.security.services.UserDetailsImpl;
 import com.petervekony.letsplay.service.ProductService;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,7 +46,9 @@ public class ProductController {
   @PostMapping("/products")
   public ResponseEntity<ProductModel> createProduct(@RequestBody ProductModel productModel) {
     try {
-      UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      PrincipalData principalData = new PrincipalData();
+
+      UserDetailsImpl userDetails = principalData.getUserDetails();
 
       productModel.setUserId(userDetails.getId());
 
@@ -63,6 +62,17 @@ public class ProductController {
 
   @PutMapping("/products/{id}")
   public ResponseEntity<ProductModel> updateProduct(@PathVariable("id") String id, @RequestBody ProductModel productModel) {
+    Optional<ProductModel> existingProduct = productService.getProductById(id);
+    if (existingProduct.isEmpty()) {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    PrincipalData principalData = new PrincipalData();
+
+    if (!principalData.authCheck(existingProduct.get().getUserId())) {
+      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+    }
+
     Optional<ProductModel> updatedProduct = productService.updateProduct(id, productModel);
 
     return updatedProduct
@@ -72,6 +82,17 @@ public class ProductController {
 
   @DeleteMapping("products/{id}")
   public ResponseEntity<HttpStatus> deleteProduct(@PathVariable String id) {
+    Optional<ProductModel> product = productService.getProductById(id);
+    if (product.isEmpty()) {
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    PrincipalData principalData = new PrincipalData();
+
+    if (!principalData.authCheck(product.get().getUserId())) {
+      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+    }
+
     try {
       productService.deleteProduct(id);
       return new ResponseEntity<>(HttpStatus.NO_CONTENT);

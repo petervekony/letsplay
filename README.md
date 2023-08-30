@@ -1,6 +1,54 @@
-# Letsplay CRUD API
+# LetsPlay CRUD API
 
-## Signup request
+Letsplay is the first project in the Java track of grit:lab's curriculum. It consists of creating a basic CRUD API using MongoDB.
+Students learn about:
+- Spring Boot framework
+- Spring Security
+- designing REST APIs
+- authentication
+- authorization
+- NoSQL databases
+- security
+
+## Features
+
+The database consists of two collections (users and products) with a one-to-many relationship between them.
+Users can have two different roles: admin and user. Products have five properties: ID, name, description, price and the owner's ID.
+The endpoint to request all products is accessible without authentication, the rest require the client to be authenticated by sending the appropriate requests to the auth endpoints.
+The API uses HTTPS protocol. Passwords are shared hashed in the database.
+
+## Environment Variables
+
+Some basic settings (like DB connection or admin password) are stored in the *application.properties* file in the project's *resources* directory.
+
+## Prerequisites
+
+Running the API requires a Java Development Kit installed. This project was written using JDK 17.
+
+Also, the API requires a MongoDB database to connect to. If you want to host the database on another computer or a container, you need to modify the MongoDB host and port variables in the *application.resources* file.
+
+### Hosting The Database Locally
+
+If you want to host the database on localhost, make sure you have mongodb-community installed. On MacOS, you can install it via Homebrew. Run the commands below in your terminal:
+
+```
+brew tap mongodb/brew
+brew update
+brew install mongodb-community
+```
+
+You can start and stop the *mongodb-community* service with the following commands:
+
+```
+brew services start mongodb-community
+brew services stop mongodb-community
+```
+
+It can also come in handy if you have a MongoDB GUI (like Compass) installed.
+
+## API Endpoints
+
+### Sign-up
 
 Using Postman (or a similar API tool) you have to send a POST request to the */api/auth/signup* endpoint with the request body following this structure:
 
@@ -12,7 +60,7 @@ Using Postman (or a similar API tool) you have to send a POST request to the */a
 }
 ```
 
-## Signin request
+### Sign-in
 
 POST request to the */api/auth/signin* endpoint with a request body following this structure:
 
@@ -33,6 +81,10 @@ The response body should look similar to this:
 ```
 It also contains a cookie named "letsplay" for the authentication. Postman saves this cookie by default and uses it in any future requests, with other tools you might have to manually add the cookie.
 
+### Sign-out
+
+Empty POST request to the */api/auth/signout* endpoint will log the user out and prompt the client's device to remove the authentication cookie.
+
 ## User endpoints
 
 ### Get All Users
@@ -43,17 +95,51 @@ A GET request with an empty body sent to the */api/users* endpoint will retrieve
 
 A GET request with an empty body sent to the */api/users/**{id}*** endpoint will retrieve a user specified at **{id}**.
 
-### Create User
-
-??? TODO ???
-
 ### Update User
+A PUT request to the */api/users* endpoint with the following request body structure:
+```json
+{
+  "name": "desiredName",
+  "email": "desiredEmail",
+  "password": "desiredPassword"
+}
+```
+If either of them is omitted from the request body, the original value remains.
+
+**NOTE**: If you update your own user details, you will have to re-authenticate (*/api/auth/signin*).
+
+### Update User Role (Admins Only)
+
+Admins can assign a new role to users and admins by adding a *role* field to the **Update User** request:
+```json
+{
+  "role": "admin"
+}
+```
+If other fields are specified as well (name, email or password), all gets updated.
+If a user tries to update their role, it is ignored.
+
 ### Delete User
+
+A DELETE request with an empty request body to the */api/users/**{id}*** endpoint with the user **{id}** will delete the user.
+
+Admins can delete any user, users can only delete themselves.
+
+User deletion removes all products owned by the user from the database as well.
 
 ## Product endpoints
 
+### Get All Products
 
-## Create product request
+An empty GET request to the */api/products* endpoint will return all products in the database.
+
+**NOTE**: This is the only endpoints that works without authentication. User IDs are available in the response, but searching users by ID only work for authenticated clients.
+
+### Get Product By ID
+
+An empty GET request to the */api/products/**{id}*** endpoint with the **{id}** specified will retrieve the specific product's data.
+
+### Create Product
 
 POST request to the */api/products* endpoint with the following structure:
 
@@ -66,4 +152,22 @@ POST request to the */api/products* endpoint with the following structure:
 ```
 
 A user can NOT create a product for another user.
+
+### Update Product
+
+POST request to the */api/products/**{id}*** endpoint (where **{id}** is the updated product's ID) with the following request body structure:
+
+```json
+{
+  "name": "new name",
+  "description": "new description",
+  "price": 123.12
+}
+```
+
+### Delete Product
+
+Empty DELETE request to the */api/products/**{id}*** endpoint with the deleted product's **{id}** will remove it from the database.
+
+**NOTE**: Users can only delete their own products.
 

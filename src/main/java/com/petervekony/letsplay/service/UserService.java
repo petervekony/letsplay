@@ -6,6 +6,7 @@ import com.petervekony.letsplay.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -56,13 +57,28 @@ public class UserService {
         return userRepository.save(userModel);
     }
 
-    public Optional<UserModel> updateUser(String id, UserModel userModel) {
+    public Optional<UserModel> updateUser(String id, UserModel userModel, boolean isSelf) {
         Optional<UserModel> userData = userRepository.findById(id);
         if (userData.isPresent()) {
             UserModel _user = userData.get();
-            _user.setName(userModel.getName());
-            _user.setEmail(userModel.getEmail());
-            _user.setPassword(passwordEncoder.encode(userModel.getPassword()));
+            if (userModel.getName() != null) _user.setName(userModel.getName());
+            if (userModel.getEmail() != null) _user.setEmail(userModel.getEmail());
+            if (userModel.getPassword() != null) _user.setPassword(passwordEncoder.encode(userModel.getPassword()));
+
+            // clearing the security context if the user changed their own data
+            if (isSelf) SecurityContextHolder.clearContext();
+
+            return Optional.of(userRepository.save(_user));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public Optional<UserModel> updateUserRole(String id, String role) {
+        Optional<UserModel> userData = userRepository.findById(id);
+        if (userData.isPresent()) {
+            UserModel _user = userData.get();
+            _user.setRole(role);
             return Optional.of(userRepository.save(_user));
         } else {
             return Optional.empty();
