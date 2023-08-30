@@ -4,12 +4,17 @@ import com.petervekony.letsplay.model.ProductModel;
 import com.petervekony.letsplay.security.services.PrincipalData;
 import com.petervekony.letsplay.security.services.UserDetailsImpl;
 import com.petervekony.letsplay.service.ProductService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @CrossOrigin
@@ -44,7 +49,7 @@ public class ProductController {
   }
 
   @PostMapping("/products")
-  public ResponseEntity<ProductModel> createProduct(@RequestBody ProductModel productModel) {
+  public ResponseEntity<ProductModel> createProduct(@Valid @RequestBody ProductModel productModel) {
     try {
       PrincipalData principalData = new PrincipalData();
 
@@ -61,7 +66,7 @@ public class ProductController {
   }
 
   @PutMapping("/products/{id}")
-  public ResponseEntity<ProductModel> updateProduct(@PathVariable("id") String id, @RequestBody ProductModel productModel) {
+  public ResponseEntity<ProductModel> updateProduct(@PathVariable("id") String id, @Valid @RequestBody ProductModel productModel) {
     Optional<ProductModel> existingProduct = productService.getProductById(id);
     if (existingProduct.isEmpty()) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -99,5 +104,16 @@ public class ProductController {
     } catch (Exception e) {
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    Map<String, String> errors = new HashMap<>();
+    ex.getBindingResult().getAllErrors().forEach((error) -> {
+      String fieldName = ((FieldError) error).getField();
+      String errorMessage = error.getDefaultMessage();
+      errors.put(fieldName, errorMessage);
+    });
+    return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
   }
 }

@@ -1,5 +1,6 @@
 package com.petervekony.letsplay.model;
 
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
@@ -12,6 +13,8 @@ public class ProductModel {
 
   private String name;
   private String description;
+
+  @Min(value = 0, message = "Price must be a positive value or zero")
   private Double price;
   private String userId;
 

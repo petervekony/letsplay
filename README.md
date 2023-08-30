@@ -1,21 +1,22 @@
-# LetsPlay CRUD API
+# LetsPlay
 
 Letsplay is the first project in the Java track of grit:lab's curriculum. It consists of creating a basic CRUD API using MongoDB.
 Students learn about:
 - Spring Boot framework
 - Spring Security
-- designing REST APIs
-- authentication
-- authorization
+- Designing REST APIs
+- Authentication
+- Authorization
 - NoSQL databases
-- security
+- API security
 
 ## Features
 
 The database consists of two collections (users and products) with a one-to-many relationship between them.
-Users can have two different roles: admin and user. Products have five properties: ID, name, description, price and the owner's ID.
-The endpoint to request all products is accessible without authentication, the rest require the client to be authenticated by sending the appropriate requests to the auth endpoints.
-The API uses HTTPS protocol. Passwords are shared hashed in the database.
+Users have five properties: ID, name, email, password and role.
+Two user roles are implemented: admin and user. Products have five properties: ID, name, description, price and the owner's ID.
+The endpoint to request all products and products by name are accessible without authentication, the rest requires the client to be authenticated by sending the appropriate requests to the auth endpoints.
+The API uses HTTPS protocol. Passwords are shared hashed in the database, and not sent back to the clients.
 
 ## Environment Variables
 
@@ -46,11 +47,15 @@ brew services stop mongodb-community
 
 It can also come in handy if you have a MongoDB GUI (like Compass) installed.
 
-## API Endpoints
+### Running the server
+
+You can run the LetsPlayApplication.java file in the src/main/java/com/petervekony/letsplay directory to start the server.
+
+## Authentication Endpoints
 
 ### Sign-up
 
-Using Postman (or a similar API tool) you have to send a POST request to the */api/auth/signup* endpoint with the request body following this structure:
+Using Postman (or a similar API tool) you have to send a POST request to the <font color='green'>*/api/auth/signup*</font> endpoint with the request body following this structure:
 
 ```json
 {
@@ -62,7 +67,7 @@ Using Postman (or a similar API tool) you have to send a POST request to the */a
 
 ### Sign-in
 
-POST request to the */api/auth/signin* endpoint with a request body following this structure:
+POST request to the <font color='green'>*/api/auth/signin*</font> endpoint with a request body following this structure:
 
 ```json
 {
@@ -83,20 +88,20 @@ It also contains a cookie named "letsplay" for the authentication. Postman saves
 
 ### Sign-out
 
-Empty POST request to the */api/auth/signout* endpoint will log the user out and prompt the client's device to remove the authentication cookie.
+Empty POST request to the <font color='green'>*/api/auth/signout*</font> endpoint will log the user out and prompt the client's device to remove the authentication cookie.
 
 ## User endpoints
 
 ### Get All Users
 
-A GET request with an empty body sent to the */api/users* endpoint will retrieve all users.
+A GET request with an empty body sent to the <font color='green'>*/api/users*</font> endpoint will retrieve all users.
 
 ### Get User By ID
 
-A GET request with an empty body sent to the */api/users/**{id}*** endpoint will retrieve a user specified at **{id}**.
+A GET request with an empty body sent to the <font color='green'>*/api/users/**{id}***</font> endpoint will retrieve a user specified at **{id}**.
 
 ### Update User
-A PUT request to the */api/users* endpoint with the following request body structure:
+A PUT request to the <font color='green'>*/api/users/**{id}***</font> endpoint specifying to user **{id}** with the following request body structure:
 ```json
 {
   "name": "desiredName",
@@ -106,22 +111,24 @@ A PUT request to the */api/users* endpoint with the following request body struc
 ```
 If either of them is omitted from the request body, the original value remains.
 
-**NOTE**: If you update your own user details, you will have to re-authenticate (*/api/auth/signin*).
+**NOTE**: If you update your own user details, you will have to re-authenticate (<font color='green'>*/api/auth/signin*</font>).
 
-### Update User Role (Admins Only)
+### Update User Role (Admin Only)
 
 Admins can assign a new role to users and admins by adding a *role* field to the **Update User** request:
+
 ```json
 {
   "role": "admin"
 }
 ```
+
 If other fields are specified as well (name, email or password), all gets updated.
 If a user tries to update their role, it is ignored.
 
 ### Delete User
 
-A DELETE request with an empty request body to the */api/users/**{id}*** endpoint with the user **{id}** will delete the user.
+A DELETE request with an empty request body to the <font color='green'>*/api/users/**{id}***</font> endpoint with the user **{id}** will delete the user.
 
 Admins can delete any user, users can only delete themselves.
 
@@ -131,17 +138,19 @@ User deletion removes all products owned by the user from the database as well.
 
 ### Get All Products
 
-An empty GET request to the */api/products* endpoint will return all products in the database.
+An empty GET request to the <font color='green'>*/api/products*</font> endpoint will return all products in the database.
 
-**NOTE**: This is the only endpoints that works without authentication. User IDs are available in the response, but searching users by ID only work for authenticated clients.
+You can also request specific products by name by adding the full name as a path variable like <font color='green'>*/api/products?name=test1*</font>
+
+**NOTE**: This is the only endpoints that is accessible without authentication. User IDs are available in the response, but searching users by ID only works for authenticated clients.
 
 ### Get Product By ID
 
-An empty GET request to the */api/products/**{id}*** endpoint with the **{id}** specified will retrieve the specific product's data.
+An empty GET request to the <font color='green'>*/api/products/**{id}***</font> endpoint with the **{id}** specified will retrieve the specific product's data.
 
 ### Create Product
 
-POST request to the */api/products* endpoint with the following structure:
+POST request to the <font color='green'>*/api/products*</font> endpoint with the following structure:
 
 ```json
 {
@@ -155,7 +164,7 @@ A user can NOT create a product for another user.
 
 ### Update Product
 
-POST request to the */api/products/**{id}*** endpoint (where **{id}** is the updated product's ID) with the following request body structure:
+POST request to the <font color='green'>*/api/products/**{id}***</font> endpoint (where **{id}** is the updated product's ID) with the following request body structure:
 
 ```json
 {
@@ -167,7 +176,7 @@ POST request to the */api/products/**{id}*** endpoint (where **{id}** is the upd
 
 ### Delete Product
 
-Empty DELETE request to the */api/products/**{id}*** endpoint with the deleted product's **{id}** will remove it from the database.
+Empty DELETE request to the <font color='green'>*/api/products/**{id}***</font> endpoint with the deleted product's **{id}** will remove it from the database.
 
 **NOTE**: Users can only delete their own products.
 

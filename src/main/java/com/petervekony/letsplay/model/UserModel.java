@@ -1,5 +1,6 @@
 package com.petervekony.letsplay.model;
 
+import jakarta.validation.constraints.Email;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -14,6 +15,7 @@ public class UserModel {
 
   private String name;
 
+  @Email(message = "Invalid email format")
   private String email;
   private String password;
 

@@ -3,9 +3,12 @@ package com.petervekony.letsplay.controller;
 import com.petervekony.letsplay.security.services.PrincipalData;
 import com.petervekony.letsplay.model.UserModel;
 import com.petervekony.letsplay.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -58,7 +61,7 @@ public class UserController {
   }
 
   @PutMapping("/users/{id}")
-  public ResponseEntity<UserModel> updateUser(@PathVariable("id") String id, @RequestBody UserModel userModel) {
+  public ResponseEntity<UserModel> updateUser(@PathVariable("id") String id, @Valid @RequestBody UserModel userModel) {
     PrincipalData principalData = new PrincipalData();
     boolean isSelf = principalData.isSelf(id);
 
@@ -95,5 +98,14 @@ public class UserController {
     }
   }
 
-
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    Map<String, String> errors = new HashMap<>();
+    ex.getBindingResult().getAllErrors().forEach((error) -> {
+      String fieldName = ((FieldError) error).getField();
+      String errorMessage = error.getDefaultMessage();
+      errors.put(fieldName, errorMessage);
+    });
+    return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+  }
 }
