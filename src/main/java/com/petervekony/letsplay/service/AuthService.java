@@ -98,7 +98,8 @@ public class AuthService {
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
 
-    public ResponseEntity<?> signOut() {
+    public ResponseEntity<?> signOut(boolean isUserSelfUpdate) {
+        String messageBody = isUserSelfUpdate ? "User updated, you must re-authenticate" : "User signed out successfully";
         ResponseCookie cookie = ResponseCookie.from(jwtCookieName, "")
                 .httpOnly(true)
                 .secure(jwtCookieSecurity)
@@ -106,6 +107,6 @@ public class AuthService {
                 .maxAge(0)
                 .build();
 
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body("User signed out successfully");
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(messageBody);
     }
 }

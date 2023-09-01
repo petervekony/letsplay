@@ -1,6 +1,7 @@
 package com.petervekony.letsplay.service;
 
 import com.petervekony.letsplay.model.UserModel;
+import com.petervekony.letsplay.payload.request.UserUpdateRequest;
 import com.petervekony.letsplay.payload.response.MessageResponse;
 import com.petervekony.letsplay.repository.ProductRepository;
 import com.petervekony.letsplay.repository.UserRepository;
@@ -10,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +23,9 @@ public class UserService {
 
     @Autowired
     public ProductRepository productRepository;
+
+    @Autowired
+    public AuthService authService;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -39,72 +42,55 @@ public class UserService {
     public List<UserModel> getAllUsers(String name) {
         List<UserModel> users = new ArrayList<>();
         if (name == null) {
-            userRepository.findAll().forEach(user -> {
-                user.setPassword(null);
-                users.add(user);
-            });
+            userRepository.findAll().forEach(users::add);
         } else {
-            userRepository.findByName(name).forEach(user -> {
-                user.setPassword(null);
-                users.add(user);
-            });
+            userRepository.findByName(name).forEach(users::add);
         }
         return users;
     }
 
     public Optional<UserModel> getUserById(String id) {
-        Optional<UserModel> user = userRepository.findById(id);
-        if (user.isPresent()) {
-            user.get().setPassword(null);
-            return user;
-        } else {
-            return Optional.empty();
-        }
+        return userRepository.findById(id);
     }
 
-    public UserModel createUser(UserModel userModel) {
-        // hashing the user password before saving
-        String rawPassword = userModel.getPassword();
-        String encodedPassword = passwordEncoder.encode(rawPassword);
-
-        userModel.setPassword(encodedPassword);
-        userModel.setRole("user");
-
-        return userRepository.save(userModel);
-    }
-
-    public ResponseEntity<?> updateUser(String id, UserModel userModel, boolean isSelf) {
+    public ResponseEntity<?> updateUser(String id, UserUpdateRequest userUpdateRequest, boolean isSelf) {
         Optional<UserModel> userData = userRepository.findById(id);
         if (userData.isPresent()) {
             UserModel _user = userData.get();
-            if (userModel.getName() != null) {
-                if (userRepository.existsByName(userModel.getName())) {
+
+            // if username is not updated, ignore it
+            if (userUpdateRequest.getName() != null) {
+                if (userRepository.existsByName(userUpdateRequest.getName())) {
                     return ResponseEntity
                         .badRequest()
                         .body(new MessageResponse("Error: Username is already taken!"));
                 }
-                _user.setName(userModel.getName());
+                _user.setName(userUpdateRequest.getName());
             };
-            if (userModel.getEmail() != null) {
-                if (userRepository.existsByEmail(userModel.getEmail())) {
+
+            // if email is not updated, or it is the same as before, ignore it
+            if (userUpdateRequest.getEmail() != null && !_user.getEmail().equals(userUpdateRequest.getEmail())) {
+                userUpdateRequest.setEmail(userUpdateRequest.getEmail().toLowerCase(Locale.ROOT));
+                if (userRepository.existsByEmail(userUpdateRequest.getEmail())) {
                     return ResponseEntity
                         .badRequest()
                         .body(new MessageResponse("Error: Email is already in use!"));
                 }
-                if (!EmailValidator.isValidEmail(userModel.getEmail())) {
+                if (!EmailValidator.isValidEmail(userUpdateRequest.getEmail())) {
                     return ResponseEntity
                         .badRequest()
                         .body(new MessageResponse("Error: Invalid email format"));
                 }
-                _user.setEmail(userModel.getEmail());
+                _user.setEmail(userUpdateRequest.getEmail());
             }
-            if (userModel.getPassword() != null) _user.setPassword(passwordEncoder.encode(userModel.getPassword()));
 
-            // clearing the security context if the user changed their own data
-            if (isSelf) SecurityContextHolder.clearContext();
+            // if password is not updated, ignore it
+            if (userUpdateRequest.getPassword() != null) _user.setPassword(passwordEncoder.encode(userUpdateRequest.getPassword()));
 
             UserModel savedUser = userRepository.save(_user);
-            savedUser.setPassword(null);
+
+            // signing out if the user changed their own data
+            if (isSelf) return authService.signOut(true);
 
             return new ResponseEntity<>(savedUser, HttpStatus.OK);
         } else {

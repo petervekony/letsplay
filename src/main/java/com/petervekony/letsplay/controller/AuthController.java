@@ -27,7 +27,7 @@ public class AuthController {
 
     @PostMapping("/signout")
     public ResponseEntity<?> signOut() {
-        return authService.signOut();
+        return authService.signOut(false);
     }
 
     @PostMapping("/signup")

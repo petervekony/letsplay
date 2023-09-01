@@ -17,14 +17,16 @@ public class UserModel {
   private String id;
 
   @Field
+  @Size(min=3, max=40, message="Error: Name has to be between 3 and 40 characters long")
   private String name;
 
   @Field
-  @Email(message = "Invalid email format")
-  @Size(min=0, max=320, message = "Invalid email length")
+  @Email(message = "Error: Invalid email format")
+  @Size(min=0, max=320, message = "Error: Invalid email length")
   private String email;
 
   @Field
+  @JsonIgnore
   private String password;
 
   @Field
