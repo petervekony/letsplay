@@ -8,6 +8,7 @@ import com.petervekony.letsplay.payload.response.UserInfoResponse;
 import com.petervekony.letsplay.repository.UserRepository;
 import com.petervekony.letsplay.security.jwt.JwtUtils;
 import com.petervekony.letsplay.security.services.UserDetailsImpl;
+import com.petervekony.letsplay.util.EmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -19,6 +20,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Locale;
 
 @Service
 public class AuthService {
@@ -68,6 +71,13 @@ public class AuthService {
             return ResponseEntity
                     .badRequest()
                     .body(new MessageResponse("Error: Username is already taken!"));
+        }
+
+        signupRequest.setEmail(signupRequest.getEmail().toLowerCase(Locale.ROOT));
+        if (!EmailValidator.isValidEmail(signupRequest.getEmail())) {
+            return ResponseEntity
+                .badRequest()
+                .body(new MessageResponse("Error: Invalid email format"));
         }
 
         if (userRepository.existsByEmail(signupRequest.getEmail())) {

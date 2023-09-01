@@ -1,21 +1,29 @@
 package com.petervekony.letsplay.model;
 
 import jakarta.validation.constraints.Min;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.Size;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 @Document(collection = "products")
 public class ProductModel {
   @Id
   private String id;
 
+  @Field
+  @Size(min = 3, max = 50, message = "Name has to be between 3 and 50 characters long")
   private String name;
+
+  @Field
+  @Size(min = 3, max = 150, message = "Description has to be between 3 and 150 characters long")
   private String description;
 
+  @Field
   @Min(value = 0, message = "Price must be a positive value or zero")
   private Double price;
+
+  @Field
   private String userId;
 
   private ProductModel() {}

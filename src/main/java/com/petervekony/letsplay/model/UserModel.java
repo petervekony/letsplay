@@ -1,9 +1,12 @@
 package com.petervekony.letsplay.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -13,12 +16,18 @@ public class UserModel {
   @Id
   private String id;
 
+  @Field
   private String name;
 
+  @Field
   @Email(message = "Invalid email format")
+  @Size(min=0, max=320, message = "Invalid email length")
   private String email;
+
+  @Field
   private String password;
 
+  @Field
   private String role;
 
   public String getRole() {

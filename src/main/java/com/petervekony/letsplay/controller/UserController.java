@@ -62,7 +62,7 @@ public class UserController {
   }
 
   @PutMapping("/users/{id}")
-  public ResponseEntity<UserModel> updateUser(@PathVariable("id") String id, @Valid @RequestBody UserModel userModel) {
+  public ResponseEntity<?> updateUser(@PathVariable("id") String id, @Valid @RequestBody UserModel userModel) {
     PrincipalData principalData = new PrincipalData();
     boolean isSelf = principalData.isSelf(id);
 
@@ -77,10 +77,13 @@ public class UserController {
       }
     }
 
+    return userService.updateUser(id, userModel, isSelf);
+
+    /*
     Optional<UserModel> updatedUser = userService.updateUser(id, userModel, isSelf);
     return updatedUser
             .map(user -> new ResponseEntity<>(user, HttpStatus.OK))
-            .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+            .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND)); */
   }
 
   @DeleteMapping("/users/{id}")
