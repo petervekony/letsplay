@@ -24,6 +24,9 @@ Some basic settings (like DB connection or admin password) are stored in the *ap
 
 ## Prerequisites
 
+Since there is no front-end included in the project, it requires the use of an API tool (like Postman with a GUI, or HTTPie in the terminal or with a GUI).
+So far I've only tested using Postman.
+
 Running the API requires a Java Development Kit installed. This project was written using JDK 17.
 
 Also, the API requires a MongoDB database to connect to. If you want to host the database on another computer or a container, you need to modify the MongoDB host and port variables in the *application.resources* file.
@@ -51,7 +54,13 @@ It can also come in handy if you have a MongoDB GUI (like Compass) installed.
 
 You can run the LetsPlayApplication.java file in the src/main/java/com/petervekony/letsplay directory to start the server.
 
+#### Tests
+
+There are some tests included, you can run them by running *mvn test* in the terminal from the project's root directory.
+
 ## Authentication Endpoints
+
+Most endpoints require the client to be authenticated first. Besides the <font color='green'>*/api/auth/*</font> endpoints, only the "Get Products" (<font color='green'>*/api/products*</font> and <font color='green'>*/api/products/**{id}***</font>) endpoints are available without authentication. 
 
 ### Sign-up
 
