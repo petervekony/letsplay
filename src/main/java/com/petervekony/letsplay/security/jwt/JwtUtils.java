@@ -2,18 +2,10 @@ package com.petervekony.letsplay.security.jwt;
 
 import java.security.Key;
 import java.util.Date;
-
-import com.petervekony.letsplay.security.services.UserDetailsImpl;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.WebUtils;
-
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -28,33 +20,7 @@ public class JwtUtils {
     @Value("${letsplay.app.jwtExpirationMs}")
     private int jwtExpirationMs;
 
-    @Value("${letsplay.app.jwtCookieName}")
-    private String jwtCookie;
-
-    @Value("{letsplay.app.jwtCookieSecurity}")
-    private String jwtCookieSecurity;
-
-    public String getJwtFromCookies(HttpServletRequest request) {
-        Cookie cookie = WebUtils.getCookie(request, jwtCookie);
-        if (cookie != null) {
-            return cookie.getValue();
-        } else {
-            return null;
-        }
-    }
-
-    public ResponseCookie generateJwtCookie(UserDetailsImpl userPrincipal) {
-        String jwt = generateTokenFromUsername(userPrincipal.getUsername());
-        ResponseCookie cookie = ResponseCookie.from(jwtCookie, jwt).path("/api").maxAge(24 * 60 * 60).httpOnly(true).secure(Boolean.parseBoolean(jwtCookieSecurity)).build();
-        return cookie;
-    }
-
-    public ResponseCookie getCleanJwtCookie() {
-        ResponseCookie cookie = ResponseCookie.from(jwtCookie, null).path("/api").build();
-        return cookie;
-    }
-
-    public String getUserNameFromJwtToken(String token) {
+    public String getUserIdFromJwtToken(String token) {
         return Jwts.parserBuilder().setSigningKey(key()).build()
                 .parseClaimsJws(token).getBody().getSubject();
     }
@@ -80,9 +46,9 @@ public class JwtUtils {
         return false;
     }
 
-    public String generateTokenFromUsername(String username) {
+    public String generateTokenFromUserId(String userId) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(userId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(key(), SignatureAlgorithm.HS256)

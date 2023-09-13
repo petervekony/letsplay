@@ -10,9 +10,6 @@ import com.petervekony.letsplay.security.jwt.JwtUtils;
 import com.petervekony.letsplay.security.services.UserDetailsImpl;
 import com.petervekony.letsplay.util.EmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,36 +35,32 @@ public class AuthService {
     @Autowired
     JwtUtils jwtUtils;
 
-    @Value("${letsplay.app.jwtCookieName}")
-    String jwtCookieName;
-
-    @Value("${letsplay.app.jwtCookieSecurity}")
-    boolean jwtCookieSecurity;
-
     public ResponseEntity<?> authenticateUser(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+                new UsernamePasswordAuthenticationToken(loginRequest.getName(), loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
+        String jwtToken = jwtUtils.generateTokenFromUserId(userDetails.getId());
 
         String role = userDetails.getAuthorities().stream()
                 .findFirst()
                 .map(item -> item.getAuthority())
                 .orElse("user");
 
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+        return ResponseEntity.ok()
+                .header("Authorization", "Bearer " + jwtToken)
                 .body(new UserInfoResponse(userDetails.getId(),
                         userDetails.getUsername(),
                         userDetails.getEmail(),
-                        role));
+                        role,
+                        jwtToken));
     }
 
     public ResponseEntity<?> registerUser(SignupRequest signupRequest) {
-        if (userRepository.existsByName(signupRequest.getUsername())) {
+        if (userRepository.existsByName(signupRequest.getName())) {
             return ResponseEntity
                     .badRequest()
                     .body(new MessageResponse("Error: Username is already taken!"));
@@ -76,8 +69,8 @@ public class AuthService {
         signupRequest.setEmail(signupRequest.getEmail().toLowerCase(Locale.ROOT));
         if (!EmailValidator.isValidEmail(signupRequest.getEmail())) {
             return ResponseEntity
-                .badRequest()
-                .body(new MessageResponse("Error: Invalid email format"));
+                    .badRequest()
+                    .body(new MessageResponse("Error: Invalid email format"));
         }
 
         if (userRepository.existsByEmail(signupRequest.getEmail())) {
@@ -89,24 +82,12 @@ public class AuthService {
         // Create new user's account
         UserModel user =
                 new UserModel(
-                        signupRequest.getUsername(),
+                        signupRequest.getName(),
                         signupRequest.getEmail(),
                         encoder.encode(signupRequest.getPassword()));
         user.setRole("user");
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
-    }
-
-    public ResponseEntity<?> signOut(boolean isUserSelfUpdate) {
-        String messageBody = isUserSelfUpdate ? "User updated, you must re-authenticate" : "User signed out successfully";
-        ResponseCookie cookie = ResponseCookie.from(jwtCookieName, "")
-                .httpOnly(true)
-                .secure(jwtCookieSecurity)
-                .path("/api")
-                .maxAge(0)
-                .build();
-
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(messageBody);
     }
 }

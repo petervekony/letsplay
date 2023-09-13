@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -49,6 +50,7 @@ public class ProductController {
         .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
 
+  @PreAuthorize("isAuthenticated()")
   @PostMapping("/products")
   public ResponseEntity<ProductModel> createProduct(@Valid @RequestBody ProductModel productModel) {
     try {
@@ -66,6 +68,7 @@ public class ProductController {
     }
   }
 
+  @PreAuthorize("isAuthenticated()")
   @PutMapping("/products/{id}")
   public ResponseEntity<ProductModel> updateProduct(@PathVariable("id") String id, @Valid @RequestBody ProductModel productModel) {
     Optional<ProductModel> existingProduct = productService.getProductById(id);
@@ -86,6 +89,7 @@ public class ProductController {
             .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
 
+  @PreAuthorize("isAuthenticated()")
   @DeleteMapping("products/{id}")
   public ResponseEntity<HttpStatus> deleteProduct(@PathVariable String id) {
     Optional<ProductModel> product = productService.getProductById(id);

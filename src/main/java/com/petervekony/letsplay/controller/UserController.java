@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -20,6 +21,7 @@ public class UserController {
   @Autowired
   UserService userService;
 
+  @PreAuthorize("isAuthenticated()")
   @GetMapping("/users")
   public ResponseEntity<List<UserModel>> getAllUsers(@RequestParam(required = false) String name) {
     try {
@@ -35,6 +37,7 @@ public class UserController {
     }
   }
 
+  @PreAuthorize("isAuthenticated()")
   @GetMapping("/users/{id}")
   public ResponseEntity<UserModel> getUserById(@PathVariable("id") String id) {
     Optional<UserModel> userData = userService.getUserById(id);
@@ -44,6 +47,7 @@ public class UserController {
         .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
 
+  @PreAuthorize("isAuthenticated()")
   @PutMapping("/users/{id}")
   public ResponseEntity<?> updateUser(@PathVariable("id") String id, @Valid @RequestBody UserUpdateRequest userUpdateRequest) {
     PrincipalData principalData = new PrincipalData();
@@ -63,6 +67,7 @@ public class UserController {
     return userService.updateUser(id, userUpdateRequest, isSelf);
   }
 
+  @PreAuthorize("isAuthenticated()")
   @DeleteMapping("/users/{id}")
   public ResponseEntity<HttpStatus> deleteUser(@PathVariable String id) {
     try {

@@ -20,11 +20,17 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         List<UserModel> users = userRepository.findByName(username);
-    if (users == null || users.size() == 0) {
-      throw new UsernameNotFoundException("User Not Found with username: " + username);
-                }
+        if (users == null || users.size() == 0) {
+            throw new UsernameNotFoundException("User Not Found with username: " + username);
+        }
 
         return UserDetailsImpl.build(users.get(0));
     }
 
+    @Transactional
+    public UserDetails loadUserById(String userId) throws UsernameNotFoundException {
+        UserModel user = userRepository.findById(userId).orElseThrow(() ->
+                new UsernameNotFoundException("User Not Found with id: " + userId));
+        return UserDetailsImpl.build(user);
+    }
 }

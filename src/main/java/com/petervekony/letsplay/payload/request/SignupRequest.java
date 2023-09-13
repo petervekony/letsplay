@@ -1,13 +1,11 @@
 package com.petervekony.letsplay.payload.request;
 
-import java.util.Set;
-
 import jakarta.validation.constraints.*;
 
 public class SignupRequest {
     @NotBlank
     @Size(min = 3, max = 20)
-    private String username;
+    private String name;
 
     @NotBlank
     @Size(max = 50)
@@ -18,12 +16,12 @@ public class SignupRequest {
     @Size(min = 6, max = 40)
     private String password;
 
-    public String getUsername() {
-        return username;
+    public String getName() {
+        return name;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getEmail() {

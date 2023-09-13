@@ -5,12 +5,16 @@ import com.petervekony.letsplay.payload.request.UserUpdateRequest;
 import com.petervekony.letsplay.payload.response.MessageResponse;
 import com.petervekony.letsplay.repository.ProductRepository;
 import com.petervekony.letsplay.repository.UserRepository;
+import org.springframework.security.core.userdetails.UserDetails;
+import com.petervekony.letsplay.security.services.UserDetailsServiceImpl;
 import com.petervekony.letsplay.util.EmailValidator;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +30,9 @@ public class UserService {
 
     @Autowired
     public AuthService authService;
+
+    @Autowired
+    public UserDetailsServiceImpl userDetailsServiceImpl;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -89,8 +96,12 @@ public class UserService {
 
             UserModel savedUser = userRepository.save(_user);
 
-            // signing out if the user changed their own data
-            if (isSelf) return authService.signOut(true);
+            // if the user name was updated, user has to reauthenticate, otherwise it works
+            if (isSelf && !savedUser.getName().equals(userUpdateRequest.getName())) {
+                UserDetails newDetails = userDetailsServiceImpl.loadUserById(savedUser.getId());
+                UsernamePasswordAuthenticationToken newAuthentication = new UsernamePasswordAuthenticationToken(newDetails, null, newDetails.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(newAuthentication);
+            }
 
             return new ResponseEntity<>(savedUser, HttpStatus.OK);
         } else {
@@ -103,7 +114,17 @@ public class UserService {
         if (userData.isPresent()) {
             UserModel _user = userData.get();
             _user.setRole(role);
-            return Optional.of(userRepository.save(_user));
+
+            UserModel updatedUser = userRepository.save(_user);
+
+            if (SecurityContextHolder.getContext().getAuthentication().getName().equals(_user.getName())) {
+                // update SecurityContextHolder with new details
+                UserDetails newDetails = userDetailsServiceImpl.loadUserById(updatedUser.getId());
+                UsernamePasswordAuthenticationToken newAuthentication = new UsernamePasswordAuthenticationToken(newDetails, null, newDetails.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(newAuthentication);
+            }
+
+            return Optional.of(updatedUser);
         } else {
             return Optional.empty();
         }

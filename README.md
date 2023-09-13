@@ -24,8 +24,10 @@ Some basic settings (like DB connection or admin password) are stored in the *ap
 
 ## Prerequisites
 
+You need to clone the repository to your local machine first.
+
 Since there is no front-end included in the project, it requires the use of an API tool (like Postman with a GUI, or HTTPie in the terminal or with a GUI).
-So far I've only tested using Postman.
+So far I've only tested using Postman and HTTPie.
 
 Running the API requires a Java Development Kit installed. This project was written using JDK 17.
 
@@ -54,7 +56,11 @@ It can also come in handy if you have a MongoDB GUI (like Compass) installed.
 
 You can run the LetsPlayApplication.java file in the src/main/java/com/petervekony/letsplay directory to start the server.
 
+By default, the server listens on **https://localhost:443**.
+
 #### Tests
+
+*IN PROGRESS*
 
 There are some tests included, you can run them by running *mvn test* in the terminal from the project's root directory.
 
@@ -68,7 +74,7 @@ Using Postman (or a similar API tool) you have to send a POST request to the <fo
 
 ```json
 {
-  "username": "foo",
+  "name": "foo",
   "email": "foo@bar.com",
   "password": "desiredPassword"
 }
@@ -80,7 +86,7 @@ POST request to the <font color='green'>*/api/auth/signin*</font> endpoint with 
 
 ```json
 {
-  "username": "foo",
+  "name": "foo",
   "password": "desiredPassword"
 }
 ```
@@ -88,16 +94,13 @@ The response body should look similar to this:
 ```json
 {
   "id": "64edcec97eb59324dc919bbb",
-  "username": "foo",
+  "name": "foo",
   "email": "foo@bar.com",
-  "role": "user"
+  "role": "user",
+  "jwtToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2NTAxODg5YWFkNjBjYTZmOThlMDJhYzgiLCJpYXQiOjE2OTQ2MDA3MjgsImV4cCI6MTY5NDY4NzEyOH0.7HV21Td4_C4kc7TvFphn2iBry4Xcv7_o2Z5FmiFiCdE"
 }
 ```
-It also contains a cookie named "letsplay" for the authentication. Postman saves this cookie by default and uses it in any future requests, with other tools you might have to manually add the cookie.
-
-### Sign-out
-
-Empty POST request to the <font color='green'>*/api/auth/signout*</font> endpoint will log the user out and prompt the client's device to remove the authentication cookie.
+The user must extract the jwtToken either from the response body or the response header, and use it as a bearer token in all authenticated endpoints.
 
 ## User endpoints
 
@@ -120,8 +123,6 @@ A PUT request to the <font color='green'>*/api/users/**{id}***</font> endpoint s
 ```
 If either of them is omitted from the request body, the original value remains.
 
-**NOTE**: If you update your own user details, you will have to re-authenticate (<font color='green'>*/api/auth/signin*</font>).
-
 ### Update User Role (Admin Only)
 
 Admins can assign a new role to users and admins by adding a *role* field to the **Update User** request:
@@ -133,7 +134,7 @@ Admins can assign a new role to users and admins by adding a *role* field to the
 ```
 
 If other fields are specified as well (name, email or password), all gets updated.
-If a user tries to update their role, it is ignored.
+If a user tries to update their own role, it is ignored.
 
 ### Delete User
 
