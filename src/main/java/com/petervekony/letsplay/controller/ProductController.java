@@ -62,7 +62,7 @@ public class ProductController {
 
       ProductModel _productModel = productService.createProduct(productModel);
 
-      return new ResponseEntity<>(_productModel, HttpStatus.OK);
+      return new ResponseEntity<>(_productModel, HttpStatus.CREATED);
     } catch (Exception e) {
       return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }

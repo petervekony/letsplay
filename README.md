@@ -150,7 +150,7 @@ User deletion removes all products owned by the user from the database as well.
 
 An empty GET request to the <font color='green'>*/api/products*</font> endpoint will return all products in the database.
 
-You can also request specific products by name by adding the full name as a path variable like <font color='green'>*/api/products?name=test1*</font>
+You can also request specific products by name by adding the full name as a query parameter like <font color='green'>*/api/products?name=test1*</font>
 
 **NOTE**: This is the only endpoints that is accessible without authentication. User IDs are available in the response, but searching users by ID only works for authenticated clients.
 
